@@ -2,9 +2,9 @@ import { Activity, Heart, LockKeyhole } from 'lucide-react'
 
 export function BrandPanel() {
   return (
-    <section className="relative z-10 isolate flex min-h-[360px] flex-col justify-between overflow-hidden bg-gradient-to-br from-[#073b36] via-[#0b5148] to-[#126458] px-7 py-8 text-white shadow-[0_12px_28px_rgba(5,35,31,0.12)] sm:px-10 sm:py-10 lg:min-h-screen lg:px-14 lg:py-14">
-      <div aria-hidden="true" className="pointer-events-none absolute -right-[175px] -bottom-[155px] z-0 size-[340px] rounded-full border border-emerald-300/20 sm:-right-[180px] sm:-bottom-[170px] sm:size-[380px] lg:size-[420px] 2xl:-right-[220px] 2xl:-bottom-[230px] 2xl:size-[625px]">
-        <span className="absolute left-1/2 top-1/2 size-[250px] -translate-x-1/2 -translate-y-1/2 rounded-full border border-emerald-300/20 sm:size-[280px] lg:size-[310px] 2xl:size-[470px]" />
+    <section className="relative z-10 isolate flex min-h-90 flex-col justify-between overflow-hidden bg-linear-to-br from-[#073b36] via-[#0b5148] to-[#126458] px-7 py-8 text-white shadow-[0_12px_28px_rgba(5,35,31,0.12)] sm:px-10 sm:py-10 lg:min-h-screen lg:px-14 lg:py-14">
+      <div aria-hidden="true" className="pointer-events-none absolute -right-43.75 -bottom-38.75 z-0 size-85 rounded-full border border-emerald-300/20 sm:-right-45 sm:-bottom-42.5 sm:size-95 lg:size-105 2xl:-right-55 2xl:-bottom-57.5 2xl:size-156.25">
+        <span className="absolute left-1/2 top-1/2 size-62.5 -translate-x-1/2 -translate-y-1/2 rounded-full border border-emerald-300/20 sm:size-70 lg:size-77.5 2xl:size-117.5" />
       </div>
 
       <div className="relative z-10 flex items-center gap-4">
