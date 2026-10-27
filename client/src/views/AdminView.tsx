@@ -8,6 +8,7 @@ import { INITIAL_CLINICAL_RESOURCES } from '../constants/admin'
 import type { UserProfile } from '../types/access'
 import type { AdminTab, ClinicalResource } from '../types/admin'
 import { CentersAndBoxesView } from './admin/CentersAndBoxesView'
+import { AdminPatientsView } from './AdminPatientsView'
 
 interface AdminViewProps {
   administrator: UserProfile
@@ -16,6 +17,9 @@ interface AdminViewProps {
 
 export function AdminView({ administrator, onLogout }: AdminViewProps) {
   const [activeTab, setActiveTab] = useState<AdminTab>('Centros y box')
+  const [activePage, setActivePage] = useState<'structure' | 'patients'>(
+    administrator.roleId === 'recepcionista' ? 'patients' : 'structure',
+  )
   const [resources, setResources] = useState<ClinicalResource[]>(INITIAL_CLINICAL_RESOURCES)
   const [editingResource, setEditingResource] = useState<ClinicalResource | null>(null)
   const [isEditorOpen, setIsEditorOpen] = useState(false)
@@ -65,12 +69,24 @@ export function AdminView({ administrator, onLogout }: AdminViewProps) {
 
   return (
     <div className="min-h-screen bg-[#f3f6fa] text-[#283432] lg:pl-[280px]">
-      <AdminSidebar administrator={administrator} onLogout={onLogout} />
+      <AdminSidebar
+        administrator={administrator}
+        onLogout={onLogout}
+        activePage={activePage}
+        onSelectPage={setActivePage}
+      />
 
       <div className="min-h-screen">
-        <AdminHeader />
+        <AdminHeader
+          roleTitle={administrator.roleId === 'recepcionista' ? 'Recepcionista' : 'Administrador'}
+        />
 
-        <main className="mx-auto max-w-[1440px] px-5 py-7 sm:px-9 sm:py-8 lg:px-10 lg:py-9">
+        {activePage === 'patients' ? (
+          <main className="mx-auto max-w-[1440px] px-5 py-7 sm:px-9 sm:py-8 lg:px-10 lg:py-9">
+            <AdminPatientsView />
+          </main>
+        ) : (
+          <main className="mx-auto max-w-[1440px] px-5 py-7 sm:px-9 sm:py-8 lg:px-10 lg:py-9">
           <div className="flex flex-col gap-5 sm:flex-row sm:items-end sm:justify-between">
             <div>
               <p className="text-xs font-bold tracking-[0.13em] text-[#147a72]">
@@ -114,7 +130,8 @@ export function AdminView({ administrator, onLogout }: AdminViewProps) {
               </p>
             </section>
           )}
-        </main>
+          </main>
+        )}
       </div>
 
       <ResourceFormModal

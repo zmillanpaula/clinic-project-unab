@@ -50,7 +50,11 @@ export function useAccess() {
         return
       }
 
-      if (account.roleId !== 'administrador') {
+      if (
+        account.roleId !== 'administrador' &&
+        account.roleId !== 'recepcionista' &&
+        account.roleId !== 'paciente'
+      ) {
         showFeedback(
           `Vista en desarrollo. El acceso para el perfil ${role.title} estará disponible próximamente en este prototipo.`,
           'info',

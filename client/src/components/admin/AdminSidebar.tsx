@@ -14,14 +14,16 @@ import type { UserProfile } from '../../types/access'
 type AdminSidebarProps = {
   administrator: UserProfile
   onLogout: () => void
+  activePage: 'structure' | 'patients'
+  onSelectPage: (page: 'structure' | 'patients') => void
 }
 
 const clinicalNavigation = [
   { label: 'Inicio', Icon: House },
   { label: 'Agenda', Icon: Calendar },
-  { label: 'Pacientes', Icon: UsersRound },
+  { label: 'Pacientes', Icon: UsersRound, page: 'patients' as const },
   { label: 'Profesionales', Icon: Stethoscope },
-  { label: 'Centros y box', Icon: LayoutGrid },
+  { label: 'Centros y box', Icon: LayoutGrid, page: 'structure' as const },
   { label: 'Reportes', Icon: Activity },
 ]
 
@@ -42,7 +44,12 @@ function displayUserName(name: string) {
   return normalizedName(name).toUpperCase()
 }
 
-export function AdminSidebar({ administrator, onLogout }: AdminSidebarProps) {
+export function AdminSidebar({
+  administrator,
+  onLogout,
+  activePage,
+  onSelectPage,
+}: AdminSidebarProps) {
   return (
     <aside className="flex flex-col bg-[#073b36] px-4 py-4 text-white lg:fixed lg:inset-y-0 lg:left-0 lg:w-[260px] lg:px-4 lg:py-5">
       <div className="flex items-center gap-3 px-3 pb-4 lg:border-b lg:border-white/10 lg:pb-5">
@@ -62,13 +69,14 @@ export function AdminSidebar({ administrator, onLogout }: AdminSidebarProps) {
           Gestión clínica
         </span>
         <div className="mt-2 grid grid-cols-2 gap-1 sm:grid-cols-3 lg:flex lg:flex-col">
-          {clinicalNavigation.map(({ label, Icon }) => {
-            const isActive = label === 'Centros y box'
+          {clinicalNavigation.map(({ label, Icon, page }) => {
+            const isActive = page === activePage
             return (
               <button
                 key={label}
                 type="button"
                 aria-current={isActive ? 'page' : undefined}
+                onClick={page ? () => onSelectPage(page) : undefined}
                 className={`flex min-h-10 items-center gap-3 rounded-md px-3 text-left text-[13px] font-medium transition-colors ${
                   isActive
                     ? 'bg-white/12 text-white'
@@ -104,7 +112,9 @@ export function AdminSidebar({ administrator, onLogout }: AdminSidebarProps) {
           <span className="block truncate text-[13px] font-semibold">
             {displayUserName(administrator.name)}
           </span>
-          <span className="block text-xs text-white/55">Administrador</span>
+          <span className="block text-xs text-white/55">
+            {administrator.roleId === 'recepcionista' ? 'Recepcionista' : 'Administrador'}
+          </span>
         </span>
         <button
           type="button"

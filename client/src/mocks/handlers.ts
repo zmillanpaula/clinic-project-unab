@@ -37,6 +37,7 @@ function findAccountByUsername(username: string, roleId: string) {
     return (
       account.roleId === roleId &&
       (account.email === identifier || emailUsername === identifier ||
+        account.username.trim().toLowerCase() === identifier ||
         account.name.trim().toLowerCase() === identifier)
     )
   })
