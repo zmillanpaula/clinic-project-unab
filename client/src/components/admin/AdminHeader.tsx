@@ -1,6 +1,10 @@
 import { ChevronDown, MapPin, ShieldCheck } from 'lucide-react'
 
-export function AdminHeader() {
+type AdminHeaderProps = {
+  roleTitle: 'Administrador' | 'Recepcionista'
+}
+
+export function AdminHeader({ roleTitle }: AdminHeaderProps) {
   return (
     <header className="flex min-h-[68px] flex-col justify-center gap-3 border-b border-[#e4ebe9] bg-white px-5 py-3 sm:flex-row sm:items-center sm:justify-between sm:px-8 lg:px-10">
       <button
@@ -23,7 +27,7 @@ export function AdminHeader() {
 
       <span className="inline-flex w-fit items-center gap-2 rounded-full border border-[#dce9e5] bg-[#f5faf8] px-3 py-1.5 text-xs font-semibold text-[#176b5f]">
         <ShieldCheck size={14} aria-hidden="true" />
-        Administrador
+        {roleTitle}
       </span>
     </header>
   )
