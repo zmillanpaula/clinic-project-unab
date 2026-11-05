@@ -1,10 +1,20 @@
-import { MapPin, Stethoscope } from 'lucide-react'
+import { MapPin } from 'lucide-react'
 import type { PatientAppointment } from '../../types/patientPortal'
 
 type PatientAppointmentCardProps = {
   appointment: PatientAppointment
   onReschedule: () => void
   onCancel: () => void
+}
+
+function getDoctorInitials(doctor: string) {
+  return doctor
+    .replace(/^(Dr\.|Dra\.|Nut\.)\s*/i, '')
+    .trim()
+    .split(/\s+/)
+    .slice(0, 2)
+    .map((part) => part[0]?.toLocaleUpperCase('es') ?? '')
+    .join('')
 }
 
 export function PatientAppointmentCard({
@@ -52,11 +62,12 @@ export function PatientAppointmentCard({
 
         <div className="mt-6 divide-y divide-gray-100 border-t border-gray-100">
           <div className="flex items-start gap-3 py-4">
-            <Stethoscope size={17} className="mt-0.5 shrink-0 text-[#82918c]" aria-hidden="true" />
-            <div>
-              <p className="text-sm font-semibold text-[#344440]">
-                {appointment.doctor} - {appointment.specialty}
-              </p>
+            <span className="grid size-9 shrink-0 place-items-center rounded-full bg-[#DCEBED] text-xs font-bold text-[#35616B]">
+              {getDoctorInitials(appointment.doctor)}
+            </span>
+            <div className="min-w-0">
+              <p className="truncate text-sm font-medium text-[#52615d]">{appointment.doctor}</p>
+              <p className="mt-0.5 truncate text-xs text-[#7b8985]">{appointment.specialty}</p>
             </div>
           </div>
           <div className="flex items-start gap-3 py-4">
@@ -74,14 +85,14 @@ export function PatientAppointmentCard({
             <button
               type="button"
               onClick={onReschedule}
-              className="min-h-10 rounded-lg border border-[#d6e0dd] px-4 text-sm font-semibold text-[#52615d] transition hover:bg-[#f5f8f7] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#147a72]"
+              className="inline-flex min-h-10 min-w-32 items-center justify-center rounded-lg border border-[#d6e0dd] px-3 text-sm font-semibold text-[#52615d] transition hover:bg-[#f5f8f7] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#147a72]"
             >
               Reagendar
             </button>
             <button
               type="button"
               onClick={onCancel}
-              className="min-h-10 rounded-lg px-3 text-sm font-semibold text-[#a94d4d] transition hover:bg-[#fff5f5] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#a94d4d]"
+              className="inline-flex min-h-10 min-w-32 items-center justify-center rounded-lg px-3 text-sm font-semibold text-[#a94d4d] transition hover:bg-[#fff5f5] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#a94d4d]"
             >
               Cancelar hora
             </button>

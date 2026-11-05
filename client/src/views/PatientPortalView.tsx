@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { CalendarCheck2, CalendarDays, HeartPulse, LockKeyhole, Plus } from 'lucide-react'
+import { CalendarCheck2, CalendarDays, Heart, LockKeyhole, Plus } from 'lucide-react'
 import { INITIAL_PATIENT_APPOINTMENT, PATIENT_HISTORY } from '../constants/patientPortal'
 import { PatientAppointmentCard } from '../components/patient-portal/PatientAppointmentCard'
 import { PatientBookingDialog, type AppointmentRequest } from '../components/patient-portal/PatientBookingDialog'
@@ -90,8 +90,8 @@ export function PatientPortalView({ patient, onLogout }: PatientPortalViewProps)
                     </div>
                   </article>
                   <article className="flex items-center gap-3 rounded-2xl border border-[#e1e9e6] bg-white p-4 shadow-sm">
-                    <span className="grid size-11 shrink-0 place-items-center rounded-xl bg-[#f8eff1] text-[#b05d70]">
-                      <HeartPulse size={20} aria-hidden="true" />
+                    <span className="grid size-11 shrink-0 place-items-center rounded-xl bg-[#eff6ff] text-[#2563eb]">
+                      <Heart size={20} aria-hidden="true" />
                     </span>
                     <div>
                       <p className="text-xl font-bold text-[#293b37]">3</p>
