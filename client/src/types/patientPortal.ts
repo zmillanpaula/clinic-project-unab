@@ -10,6 +10,7 @@ export interface PatientAppointment {
   specialty: string
   center: string
   box: string
+  reason?: string
   status: PatientAppointmentStatus
 }
 

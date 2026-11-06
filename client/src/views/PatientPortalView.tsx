@@ -2,7 +2,7 @@ import { useState } from 'react'
 import { CalendarCheck2, CalendarDays, Heart, LockKeyhole, Plus } from 'lucide-react'
 import { INITIAL_PATIENT_APPOINTMENT, PATIENT_HISTORY } from '../constants/patientPortal'
 import { PatientAppointmentCard } from '../components/patient-portal/PatientAppointmentCard'
-import { PatientBookingDialog, type AppointmentRequest } from '../components/patient-portal/PatientBookingDialog'
+import { PatientBookingView, type AppointmentRequest } from '../components/patient-portal/PatientBookingView'
 import { PatientHistoryList } from '../components/patient-portal/PatientHistoryList'
 import { PatientPortalHeader } from '../components/patient-portal/PatientPortalHeader'
 import type { PatientAppointment, PatientPortalTab } from '../types/patientPortal'
@@ -16,7 +16,7 @@ type PatientPortalViewProps = {
 export function PatientPortalView({ patient, onLogout }: PatientPortalViewProps) {
   const [activeTab, setActiveTab] = useState<PatientPortalTab>('inicio')
   const [appointment, setAppointment] = useState(INITIAL_PATIENT_APPOINTMENT)
-  const [isBookingOpen, setIsBookingOpen] = useState(false)
+  const [isBookingFlowOpen, setIsBookingFlowOpen] = useState(false)
 
   const patientName = patient.name.replace(/[._]+/g, ' ').trim()
   const firstName = patientName.split(/\s+/)[0] ?? 'Paciente'
@@ -28,10 +28,13 @@ export function PatientPortalView({ patient, onLogout }: PatientPortalViewProps)
       date: request.date,
       time: request.time,
       specialty: request.specialty,
+      center: request.center,
+      doctor: request.doctor,
+      reason: request.reason,
       status: 'Confirmada',
     }
     setAppointment(newAppointment)
-    setIsBookingOpen(false)
+    setIsBookingFlowOpen(false)
     setActiveTab('reservas')
   }
 
@@ -39,6 +42,18 @@ export function PatientPortalView({ patient, onLogout }: PatientPortalViewProps)
     if (window.confirm('¿Quieres cancelar esta hora médica?')) {
       setAppointment((currentAppointment) => ({ ...currentAppointment, status: 'Cancelada' }))
     }
+  }
+
+  if (isBookingFlowOpen) {
+    return (
+      <PatientBookingView
+        onBack={() => {
+          setIsBookingFlowOpen(false)
+          setActiveTab('inicio')
+        }}
+        onConfirm={handleBookingSubmit}
+      />
+    )
   }
 
   return (
@@ -57,14 +72,14 @@ export function PatientPortalView({ patient, onLogout }: PatientPortalViewProps)
             <div className="mb-7 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
               <div className="flex flex-col justify-center">
                 <p className="text-xs font-bold uppercase tracking-[0.16em] text-[#0f625a]">MI SALUD</p>
-                <h1 className="mt-1 text-3xl font-bold leading-tight text-[#263a37] sm:text-4xl">
+                <h1 className="mt-1 text-3xl font-semibold text-[#263a37]">
                   Hola, {firstName}
                 </h1>
                 <p className="mt-2 text-sm text-[#71807b]">Todo listo para tu próxima atención.</p>
               </div>
               <button
                 type="button"
-                onClick={() => setIsBookingOpen(true)}
+                onClick={() => setIsBookingFlowOpen(true)}
                 className="inline-flex min-h-12 shrink-0 items-center justify-center gap-2 self-start rounded-lg bg-[#147a72] px-6 text-sm font-semibold text-white shadow-sm transition hover:bg-[#0f625a] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#147a72] sm:self-auto"
               >
                 <CalendarDays size={17} aria-hidden="true" />
@@ -75,7 +90,7 @@ export function PatientPortalView({ patient, onLogout }: PatientPortalViewProps)
             <div className="grid items-start gap-5 lg:grid-cols-[minmax(0,1.05fr)_minmax(0,0.95fr)]">
               <PatientAppointmentCard
                 appointment={appointment}
-                onReschedule={() => setIsBookingOpen(true)}
+                onReschedule={() => setIsBookingFlowOpen(true)}
                 onCancel={handleCancelAppointment}
               />
               <div className="space-y-5">
@@ -118,7 +133,7 @@ export function PatientPortalView({ patient, onLogout }: PatientPortalViewProps)
               </div>
               <button
                 type="button"
-                onClick={() => setIsBookingOpen(true)}
+                onClick={() => setIsBookingFlowOpen(true)}
                 className="inline-flex min-h-11 items-center justify-center gap-2 rounded-lg bg-[#147a72] px-4 text-sm font-semibold text-white hover:bg-[#0f625a]"
               >
                 <Plus size={17} aria-hidden="true" />
@@ -128,7 +143,7 @@ export function PatientPortalView({ patient, onLogout }: PatientPortalViewProps)
             <div className="max-w-2xl">
               <PatientAppointmentCard
                 appointment={appointment}
-                onReschedule={() => setIsBookingOpen(true)}
+                onReschedule={() => setIsBookingFlowOpen(true)}
                 onCancel={handleCancelAppointment}
               />
             </div>
@@ -155,11 +170,6 @@ export function PatientPortalView({ patient, onLogout }: PatientPortalViewProps)
       </footer>
       </div>
 
-      <PatientBookingDialog
-        isOpen={isBookingOpen}
-        onClose={() => setIsBookingOpen(false)}
-        onSubmit={handleBookingSubmit}
-      />
     </div>
   )
 }
