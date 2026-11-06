@@ -1,4 +1,4 @@
-import { LockKeyhole, UserRound } from 'lucide-react'
+import { Info, UserRound } from 'lucide-react'
 import type { PatientRecord } from '../../types/patient'
 
 type PatientListProps = {
@@ -84,8 +84,8 @@ export function PatientList({
       </ul>
       <div className="border-t border-[#e9efed] p-3 sm:p-4">
         <div className="flex items-start gap-2 rounded-lg border border-[#e5ebe8] bg-[#fafcfb] px-3 py-2.5 text-xs leading-5 text-[#7b8985]">
-          <LockKeyhole size={14} aria-hidden="true" className="mt-0.5 shrink-0" />
-          <p>Los registros con historial clínico no pueden eliminarse.</p>
+          <Info size={14} aria-hidden="true" className="mt-0.5 shrink-0" />
+          <p>Los cambios se mantienen solo durante esta sesión.</p>
         </div>
       </div>
     </section>

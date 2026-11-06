@@ -6,6 +6,7 @@ type ResourceTableProps = {
   resources: ClinicalResource[]
   openMenuId: string | null
   onEdit: (resource: ClinicalResource) => void
+  onDelete: (resource: ClinicalResource) => void
   onToggleAvailability: (resource: ClinicalResource) => void
   onToggleMenu: (resourceId: string) => void
 }
@@ -14,6 +15,7 @@ export function ResourceTable({
   resources,
   openMenuId,
   onEdit,
+  onDelete,
   onToggleAvailability,
   onToggleMenu,
 }: ResourceTableProps) {
@@ -93,6 +95,13 @@ export function ResourceTable({
                         className="w-full rounded px-3 py-2 text-left text-xs font-medium text-[#354541] hover:bg-[#f4f8f6]"
                       >
                         {resource.status === 'Disponible' ? 'Marcar en uso' : 'Marcar disponible'}
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => onDelete(resource)}
+                        className="w-full rounded px-3 py-2 text-left text-xs font-medium text-[#354541] hover:bg-[#f4f8f6]"
+                      >
+                        Eliminar recurso
                       </button>
                     </div>
                   )}

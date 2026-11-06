@@ -67,6 +67,17 @@ export function AdminView({ administrator, onLogout }: AdminViewProps) {
     )
   }
 
+  function deleteResource(resource: ClinicalResource) {
+    const confirmed = window.confirm(
+      `¿Estás seguro de que deseas eliminar "${resource.name}"? Esta acción no se puede deshacer.`,
+    )
+    if (!confirmed) return
+
+    setResources((currentResources) =>
+      currentResources.filter((item) => item.id !== resource.id)
+    )
+  }
+
   return (
     <div className="min-h-screen bg-[#f3f6fa] text-[#283432] lg:pl-[280px]">
       <AdminSidebar
@@ -119,6 +130,7 @@ export function AdminView({ administrator, onLogout }: AdminViewProps) {
               key={resources.length}
               resources={resources}
               onEditResource={openEditingDialog}
+              onDeleteResource={deleteResource}
               onToggleAvailability={toggleAvailability}
             />
           )}

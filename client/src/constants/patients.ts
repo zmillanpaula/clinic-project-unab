@@ -3,7 +3,7 @@ import type { PatientFormValues, PatientRecord } from '../types/patient'
 export const INITIAL_PATIENTS: PatientRecord[] = [
   {
     id: 'patient-001',
-    rut: '18.245.620-7',
+    rut: '18.245.620-9',
     fullName: 'Camila Rojas',
     birthDate: '1992-04-18',
     healthPlan: 'Fonasa B',
@@ -18,7 +18,7 @@ export const INITIAL_PATIENTS: PatientRecord[] = [
   },
   {
     id: 'patient-002',
-    rut: '19.846.225-2',
+    rut: '19.846.225-K',
     fullName: 'Catalina Rojas',
     birthDate: '1988-09-07',
     healthPlan: 'Isapre',
@@ -33,7 +33,7 @@ export const INITIAL_PATIENTS: PatientRecord[] = [
   },
   {
     id: 'patient-003',
-    rut: '12.918.330-4',
+    rut: '12.918.330-6',
     fullName: 'Carlos Rojas',
     initials: 'JR',
     birthDate: '1976-01-22',

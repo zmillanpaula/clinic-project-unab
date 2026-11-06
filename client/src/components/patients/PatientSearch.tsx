@@ -53,7 +53,7 @@ export function PatientSearch({
               type="search"
               value={rut}
               onChange={(event) => onRutChange(event.target.value)}
-              placeholder="18.245.620-7"
+              placeholder="18.245.620-9"
               aria-label="Buscar paciente por RUT"
               autoComplete="off"
               className="h-11 w-full border-0 bg-transparent pl-10 pr-3.5 text-sm text-[#283432] outline-none placeholder:text-[#9aa5a1] focus:ring-0"

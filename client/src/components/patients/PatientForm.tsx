@@ -1,14 +1,17 @@
 import { useRef, type FormEvent } from 'react'
-import { CalendarDays, CheckCircle2, ClipboardList, Heart, MapPin, UserRound } from 'lucide-react'
+import { Bell, CalendarDays, CheckCircle2, ClipboardList, Heart, MapPin, Trash2, UserRound, XCircle } from 'lucide-react'
 import type { PatientFormValues } from '../../types/patient'
 
 type PatientFormProps = {
   values: PatientFormValues
   isIdentifierVerified: boolean
+  isVerificationError: boolean
   verificationMessage: string
   onChange: (field: keyof PatientFormValues, value: string) => void
   onSave: () => void
   onDiscard: () => void
+  onDelete: () => void
+  canDelete: boolean
 }
 
 const inputClassName = 'h-10 w-full rounded-lg border border-[#d6e0dd] bg-white px-3 text-sm text-[#344440] outline-none transition placeholder:text-[#a0aaa6] focus:border-[#25887b] focus:ring-4 focus:ring-[#25887b]/10'
@@ -26,10 +29,13 @@ function getInitials(name: string) {
 export function PatientForm({
   values,
   isIdentifierVerified,
+  isVerificationError,
   verificationMessage,
   onChange,
   onSave,
   onDiscard,
+  onDelete,
+  canDelete,
 }: PatientFormProps) {
   const birthDateInputRef = useRef<HTMLInputElement>(null)
 
@@ -254,12 +260,26 @@ export function PatientForm({
 
       <div className="flex flex-col gap-3 border-t border-[#e9efed] bg-[#fbfcfc] px-4 py-4 sm:flex-row sm:items-center sm:justify-between sm:px-6">
         <p aria-live="polite" className={`inline-flex items-center gap-1.5 text-xs font-medium ${
-          isIdentifierVerified ? 'text-[#328057]' : 'text-[#7b8581]'
+          isVerificationError
+            ? 'text-red-600'
+            : 'text-[#328057]'
         }`}>
           {isIdentifierVerified && <CheckCircle2 size={15} aria-hidden="true" />}
+          {isVerificationError && <XCircle size={15} aria-hidden="true" />}
+          {!isIdentifierVerified && !isVerificationError && <Bell size={15} aria-hidden="true" />}
           {verificationMessage}
         </p>
         <div className="flex flex-col-reverse gap-2 sm:flex-row">
+          {canDelete && (
+            <button
+              type="button"
+              onClick={onDelete}
+              className="inline-flex min-h-10 items-center justify-center gap-2 rounded-lg border border-red-200 px-4 text-sm font-semibold text-red-700 transition hover:bg-red-50 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-red-600"
+            >
+              <Trash2 size={15} aria-hidden="true" />
+              Eliminar paciente
+            </button>
+          )}
           <button
             type="button"
             onClick={onDiscard}

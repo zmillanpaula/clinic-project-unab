@@ -95,7 +95,6 @@ export function AdminPatientsView() {
   function handleSelectPatient(patient: PatientRecord) {
     setSelectedPatientId(patient.id)
     setValues(formValuesFromPatient(patient))
-    setSearchRut(patient.rut)
     setVerificationState('verified')
     setVerificationMessage('RUT verificado, sin duplicados')
   }
@@ -162,9 +161,38 @@ export function AdminPatientsView() {
     })
     setSelectedPatientId(savedPatient.id)
     setValues(formValuesFromPatient(savedPatient))
-    setSearchRut(savedPatient.rut)
+    setSearchRut('')
     setVerificationState('verified')
     setVerificationMessage('RUT verificado, sin duplicados')
+  }
+
+  function handleDeletePatient() {
+    const patientToDelete = patients.find((patient) => patient.id === selectedPatientId)
+    if (!patientToDelete) return
+
+    const confirmed = window.confirm(
+      `¿Estás seguro de que deseas eliminar a ${patientToDelete.fullName}? Esta acción no se puede deshacer.`,
+    )
+    if (!confirmed) return
+
+    const remainingPatients = patients.filter((patient) => patient.id !== patientToDelete.id)
+    setPatients(remainingPatients)
+
+    const nextPatient = remainingPatients[0]
+    if (nextPatient) {
+      setSelectedPatientId(nextPatient.id)
+      setValues(formValuesFromPatient(nextPatient))
+      setSearchRut('')
+      setVerificationState('verified')
+      setVerificationMessage('RUT verificado, sin duplicados')
+      return
+    }
+
+    setSelectedPatientId(null)
+    setValues({ ...EMPTY_PATIENT_FORM })
+    setSearchRut('')
+    setVerificationState('idle')
+    setVerificationMessage('Verifica el RUT antes de guardar la información.')
   }
 
   const isIdentifierVerified = verificationState === 'verified'
@@ -212,10 +240,13 @@ export function AdminPatientsView() {
         <PatientForm
           values={values}
           isIdentifierVerified={isIdentifierVerified}
+          isVerificationError={verificationState === 'invalid' || verificationState === 'duplicate'}
           verificationMessage={verificationMessage}
           onChange={handleValueChange}
           onSave={handleSavePatient}
           onDiscard={handleDiscardChanges}
+          onDelete={handleDeletePatient}
+          canDelete={selectedPatientId !== null}
         />
       </div>
     </section>
