@@ -1,10 +1,10 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { Plus } from 'lucide-react'
 import { AdminHeader } from '../components/admin/AdminHeader'
 import { AdminSidebar } from '../components/admin/AdminSidebar'
 import { AdminTabs } from '../components/admin/AdminTabs'
 import { ResourceFormModal } from '../components/admin/ResourceFormModal'
-import { INITIAL_CLINICAL_RESOURCES } from '../constants/admin'
+import { createResource, fetchResources, updateResource } from '../services/resourcesService'
 import type { UserProfile } from '../types/access'
 import type { AdminTab, ClinicalResource } from '../types/admin'
 import { CentersAndBoxesView } from './admin/CentersAndBoxesView'
@@ -16,9 +16,16 @@ interface AdminViewProps {
 
 export function AdminView({ administrator, onLogout }: AdminViewProps) {
   const [activeTab, setActiveTab] = useState<AdminTab>('Centros y box')
-  const [resources, setResources] = useState<ClinicalResource[]>(INITIAL_CLINICAL_RESOURCES)
+  const [resources, setResources] = useState<ClinicalResource[]>([])
+  const [loadError, setLoadError] = useState<string | null>(null)
   const [editingResource, setEditingResource] = useState<ClinicalResource | null>(null)
   const [isEditorOpen, setIsEditorOpen] = useState(false)
+
+  useEffect(() => {
+    fetchResources()
+      .then(setResources)
+      .catch((error: Error) => setLoadError(error.message))
+  }, [])
 
   function closeEditor() {
     setIsEditorOpen(false)
@@ -35,32 +42,29 @@ export function AdminView({ administrator, onLogout }: AdminViewProps) {
     setIsEditorOpen(true)
   }
 
-  function handleSubmitResource(resourceData: Omit<ClinicalResource, 'id'>) {
-    const updatedResource: ClinicalResource = {
-      id: editingResource?.id ?? `resource-${Date.now()}`,
-      ...resourceData,
-    }
-
-    setResources((currentResources) => {
+  async function handleSubmitResource(resourceData: Omit<ClinicalResource, 'id'>) {
+    try {
       if (editingResource) {
-        return currentResources.map((item) =>
-          item.id === editingResource.id ? updatedResource : item
-        )
+        const updated = await updateResource(editingResource.id, resourceData)
+        setResources((current) => current.map((item) => (item.id === updated.id ? updated : item)))
+      } else {
+        const created = await createResource(resourceData)
+        setResources((current) => [created, ...current])
       }
-      return [updatedResource, ...currentResources]
-    })
-
-    closeEditor()
+      closeEditor()
+    } catch (error) {
+      alert((error as Error).message)
+    }
   }
 
-  function toggleAvailability(resource: ClinicalResource) {
-    setResources((currentResources) =>
-      currentResources.map((item) =>
-        item.id === resource.id
-          ? { ...item, status: item.status === 'Disponible' ? 'En uso' : 'Disponible' }
-          : item
-      )
-    )
+  async function toggleAvailability(resource: ClinicalResource) {
+    const status = resource.status === 'Disponible' ? 'En uso' : 'Disponible'
+    try {
+      const updated = await updateResource(resource.id, { status })
+      setResources((current) => current.map((item) => (item.id === updated.id ? updated : item)))
+    } catch (error) {
+      alert((error as Error).message)
+    }
   }
 
   return (
@@ -97,6 +101,12 @@ export function AdminView({ administrator, onLogout }: AdminViewProps) {
           </div>
 
           <AdminTabs activeTab={activeTab} onSelectTab={setActiveTab} />
+
+          {loadError && (
+            <p className="mt-6 rounded-md border border-red-200 bg-red-50 p-4 text-sm text-red-700">
+              {loadError}
+            </p>
+          )}
 
           {activeTab === 'Centros y box' && (
             <CentersAndBoxesView
