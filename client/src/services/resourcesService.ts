@@ -17,3 +17,7 @@ export async function updateResource(id: string, changes: Partial<ResourceInput>
   const { data } = await axiosInstance.patch<ClinicalResource>(`/api/resources/${id}`, changes)
   return data
 }
+
+export async function deleteResource(id: string) {
+  await axiosInstance.delete(`/api/resources/${id}`)
+}
