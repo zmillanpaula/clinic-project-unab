@@ -4,7 +4,10 @@ import bcrypt from 'bcryptjs'
 import { connectDB } from '../config/db.js'
 import { User } from '../models/User.js'
 import { Resource } from '../models/Resource.js'
+import { Patient } from '../models/Patient.js'
 import { INITIAL_CLINICAL_RESOURCES } from '../data/clinicalResources.js'
+import { INITIAL_PATIENTS } from '../data/patients.js'
+import { normalizeRut } from '../utils/rut.js'
 
 const DEMO_ACCOUNTS = [
   { name: 'maria.lopez', email: 'administrador@example.cl', password: 'AdminClave123!', roleId: 'administrador' },
@@ -36,6 +39,17 @@ try {
     )
   }
   console.log(`✔ ${INITIAL_CLINICAL_RESOURCES.length} centros y box`)
+
+  // 3. Pacientes
+  for (const patient of INITIAL_PATIENTS) {
+    const rut = normalizeRut(patient.rut)
+    await Patient.findOneAndUpdate(
+      { rut },
+      { ...patient, rut },
+      { upsert: true, runValidators: true },
+    )
+  }
+  console.log(`✔ ${INITIAL_PATIENTS.length} pacientes`)
 
   console.log('Datos de prueba cargados')
 } catch (error) {
