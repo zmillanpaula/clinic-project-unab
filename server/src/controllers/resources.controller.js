@@ -28,3 +28,13 @@ export async function updateResource(req, res) {
   if (!resource) return res.status(404).json(NOT_FOUND)
   res.json(resource)
 }
+
+export async function deleteResource(req, res) {
+  const { id } = req.params
+  if (!mongoose.isValidObjectId(id)) return res.status(404).json(NOT_FOUND)
+
+  const resource = await Resource.findByIdAndDelete(id)
+  if (!resource) return res.status(404).json(NOT_FOUND)
+
+  res.status(204).end()
+}

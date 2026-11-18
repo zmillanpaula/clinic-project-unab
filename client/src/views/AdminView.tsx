@@ -4,7 +4,12 @@ import { AdminHeader } from '../components/admin/AdminHeader'
 import { AdminSidebar } from '../components/admin/AdminSidebar'
 import { AdminTabs } from '../components/admin/AdminTabs'
 import { ResourceFormModal } from '../components/admin/ResourceFormModal'
-import { createResource, fetchResources, updateResource } from '../services/resourcesService'
+import {
+  createResource,
+  deleteResource as deleteResourceRequest,
+  fetchResources,
+  updateResource,
+} from '../services/resourcesService'
 import type { UserProfile } from '../types/access'
 import type { AdminTab, ClinicalResource } from '../types/admin'
 import { CentersAndBoxesView } from './admin/CentersAndBoxesView'
@@ -71,17 +76,19 @@ export function AdminView({ administrator, onLogout }: AdminViewProps) {
     }
   }
 
-  function deleteResource(resource: ClinicalResource) {
-    const confirmed = window.confirm(
-      `¿Estás seguro de que deseas eliminar "${resource.name}"? Esta acción no se puede deshacer.`,
-    )
-    if (!confirmed) return
+  async function deleteResource(resource: ClinicalResource) {
+  const confirmed = window.confirm(
+    `¿Estás seguro de que deseas eliminar "${resource.name}"? Esta acción no se puede deshacer.`,
+  )
+  if (!confirmed) return
 
-    setResources((currentResources) =>
-      currentResources.filter((item) => item.id !== resource.id)
-    )
+  try {
+    await deleteResourceRequest(resource.id)
+    setResources((current) => current.filter((item) => item.id !== resource.id))
+  } catch (error) {
+    alert((error as Error).message)
   }
-
+}
   return (
     <div className="min-h-screen bg-[#f3f6fa] text-[#283432] lg:pl-[280px]">
       <AdminSidebar
