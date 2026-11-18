@@ -7,12 +7,14 @@ import type { ClinicalResource } from '../../types/admin'
 interface CentersAndBoxesViewProps {
   resources: ClinicalResource[]
   onEditResource: (resource: ClinicalResource) => void
+  onDeleteResource: (resource: ClinicalResource) => void
   onToggleAvailability: (resource: ClinicalResource) => void
 }
 
 export function CentersAndBoxesView({
   resources,
   onEditResource,
+  onDeleteResource,
   onToggleAvailability,
 }: CentersAndBoxesViewProps) {
   const [search, setSearch] = useState('')
@@ -58,6 +60,10 @@ export function CentersAndBoxesView({
           resources={visibleResources}
           openMenuId={openMenuId}
           onEdit={onEditResource}
+          onDelete={(resource) => {
+            onDeleteResource(resource)
+            setOpenMenuId(null)
+          }}
           onToggleAvailability={onToggleAvailability}
           onToggleMenu={(resourceId) =>
             setOpenMenuId((currentId) => currentId === resourceId ? null : resourceId)

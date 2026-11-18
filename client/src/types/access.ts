@@ -4,6 +4,7 @@ export type { RoleId } from '../config/roles'
 
 export type AccountRecord = {
   email: string
+  username: string
   name: string
   passwordHash: string
   passwordSalt: string
