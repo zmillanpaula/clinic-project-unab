@@ -1,9 +1,10 @@
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { Plus } from 'lucide-react'
-import { EMPTY_PATIENT_FORM, INITIAL_PATIENTS } from '../constants/patients'
+import { EMPTY_PATIENT_FORM } from '../constants/patients'
 import { PatientForm } from '../components/patients/PatientForm'
 import { PatientList } from '../components/patients/PatientList'
 import { PatientSearch } from '../components/patients/PatientSearch'
+import { createPatient, deletePatient, fetchPatients, updatePatient } from '../services/patientsService'
 import type { PatientFormValues, PatientRecord } from '../types/patient'
 
 type VerificationState = 'idle' | 'verified' | 'invalid' | 'duplicate'
@@ -54,14 +55,28 @@ function formValuesFromPatient(patient: PatientRecord): PatientFormValues {
 }
 
 export function AdminPatientsView() {
-  const [patients, setPatients] = useState<PatientRecord[]>(INITIAL_PATIENTS)
-  const [selectedPatientId, setSelectedPatientId] = useState<string | null>(INITIAL_PATIENTS[0]?.id ?? null)
-  const [values, setValues] = useState<PatientFormValues>(
-    INITIAL_PATIENTS[0] ? formValuesFromPatient(INITIAL_PATIENTS[0]) : { ...EMPTY_PATIENT_FORM },
-  )
+  const [patients, setPatients] = useState<PatientRecord[]>([])
+  const [selectedPatientId, setSelectedPatientId] = useState<string | null>(null)
+  const [values, setValues] = useState<PatientFormValues>({ ...EMPTY_PATIENT_FORM })
   const [searchRut, setSearchRut] = useState('')
-  const [verificationState, setVerificationState] = useState<VerificationState>('verified')
-  const [verificationMessage, setVerificationMessage] = useState('RUT verificado, sin duplicados')
+  const [verificationState, setVerificationState] = useState<VerificationState>('idle')
+  const [verificationMessage, setVerificationMessage] = useState('Verifica el RUT antes de guardar la información.')
+  const [loadError, setLoadError] = useState<string | null>(null)
+
+  useEffect(() => {
+    fetchPatients()
+      .then((loadedPatients) => {
+        setPatients(loadedPatients)
+        const firstPatient = loadedPatients[0]
+        if (firstPatient) {
+          setSelectedPatientId(firstPatient.id)
+          setValues(formValuesFromPatient(firstPatient))
+          setVerificationState('verified')
+          setVerificationMessage('RUT verificado, sin duplicados')
+        }
+      })
+      .catch((error: Error) => setLoadError(error.message))
+  }, [])
 
   const visiblePatients = useMemo(() => {
     const normalizedSearch = normalizeRut(searchRut)
@@ -129,7 +144,7 @@ export function AdminPatientsView() {
     setVerificationMessage('Verifica el RUT antes de guardar la información.')
   }
 
-  function handleSavePatient() {
+  async function handleSavePatient() {
     if (!isValidRut(values.rut)) {
       setVerificationState('invalid')
       setVerificationMessage('Ingresa un RUT válido antes de guardar.')
@@ -145,28 +160,31 @@ export function AdminPatientsView() {
       return
     }
 
-    const savedPatient: PatientRecord = {
-      ...values,
-      id: selectedPatientId ?? `patient-${Date.now()}`,
-      initials: patients.find((patient) => patient.id === selectedPatientId)?.initials,
-      status: 'Activo',
+    try {
+      const savedPatient = selectedPatientId
+        ? await updatePatient(selectedPatientId, values)
+        : await createPatient(values)
+
+      setPatients((currentPatients) => {
+        if (selectedPatientId) {
+          return currentPatients.map((patient) =>
+            patient.id === selectedPatientId ? savedPatient : patient,
+          )
+        }
+        return [savedPatient, ...currentPatients]
+      })
+      setSelectedPatientId(savedPatient.id)
+      setValues(formValuesFromPatient(savedPatient))
+      setSearchRut('')
+      setVerificationState('verified')
+      setVerificationMessage('RUT verificado, sin duplicados')
+    } catch (error) {
+      setVerificationState('invalid')
+      setVerificationMessage((error as Error).message)
     }
-    setPatients((currentPatients) => {
-      if (selectedPatientId) {
-        return currentPatients.map((patient) =>
-          patient.id === selectedPatientId ? savedPatient : patient,
-        )
-      }
-      return [savedPatient, ...currentPatients]
-    })
-    setSelectedPatientId(savedPatient.id)
-    setValues(formValuesFromPatient(savedPatient))
-    setSearchRut('')
-    setVerificationState('verified')
-    setVerificationMessage('RUT verificado, sin duplicados')
   }
 
-  function handleDeletePatient() {
+  async function handleDeletePatient() {
     const patientToDelete = patients.find((patient) => patient.id === selectedPatientId)
     if (!patientToDelete) return
 
@@ -174,6 +192,13 @@ export function AdminPatientsView() {
       `¿Estás seguro de que deseas eliminar a ${patientToDelete.fullName}? Esta acción no se puede deshacer.`,
     )
     if (!confirmed) return
+
+    try {
+      await deletePatient(patientToDelete.id)
+    } catch (error) {
+      alert((error as Error).message)
+      return
+    }
 
     const remainingPatients = patients.filter((patient) => patient.id !== patientToDelete.id)
     setPatients(remainingPatients)
@@ -218,6 +243,12 @@ export function AdminPatientsView() {
           Registrar paciente
         </button>
       </div>
+
+      {loadError && (
+        <p className="mb-5 rounded-md border border-red-200 bg-red-50 p-4 text-sm text-red-700">
+          {loadError}
+        </p>
+      )}
 
       <PatientSearch
         rut={searchRut}
