@@ -3,6 +3,8 @@ import mongoose from 'mongoose'
 import bcrypt from 'bcryptjs'
 import { connectDB } from '../config/db.js'
 import { User } from '../models/User.js'
+import { Resource } from '../models/Resource.js'
+import { INITIAL_CLINICAL_RESOURCES } from '../data/clinicalResources.js'
 
 const DEMO_ACCOUNTS = [
   { name: 'maria.lopez', email: 'administrador@example.cl', password: 'AdminClave123!', roleId: 'administrador' },
@@ -14,6 +16,7 @@ const DEMO_ACCOUNTS = [
 try {
   await connectDB()
 
+  // 1. Cuentas de prueba
   for (const { password, ...profile } of DEMO_ACCOUNTS) {
     const passwordHash = await bcrypt.hash(password, 10)
     await User.findOneAndUpdate(
@@ -24,9 +27,19 @@ try {
     console.log(`✔ ${profile.email}`)
   }
 
-  console.log('Cuentas de prueba cargadas')
+  // 2. Centros y box
+  for (const { id, ...resource } of INITIAL_CLINICAL_RESOURCES) {
+    await Resource.findOneAndUpdate(
+      { name: resource.name, location: resource.location },
+      resource,
+      { upsert: true, runValidators: true },
+    )
+  }
+  console.log(`✔ ${INITIAL_CLINICAL_RESOURCES.length} centros y box`)
+
+  console.log('Datos de prueba cargados')
 } catch (error) {
-  console.error('Error al cargar cuentas:', error.message)
+  console.error('Error al cargar datos:', error.message)
   process.exitCode = 1
 } finally {
   await mongoose.disconnect()
