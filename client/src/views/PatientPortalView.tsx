@@ -1,12 +1,25 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { CalendarCheck2, CalendarDays, Heart, LockKeyhole, Plus } from 'lucide-react'
-import { INITIAL_PATIENT_APPOINTMENT, PATIENT_HISTORY } from '../constants/patientPortal'
+import { PATIENT_HISTORY } from '../constants/patientPortal'
 import { PatientAppointmentCard } from '../components/patient-portal/PatientAppointmentCard'
 import { PatientBookingView, type AppointmentRequest } from '../components/patient-portal/PatientBookingView'
 import { PatientHistoryList } from '../components/patient-portal/PatientHistoryList'
 import { PatientPortalHeader } from '../components/patient-portal/PatientPortalHeader'
 import type { PatientAppointment, PatientPortalTab } from '../types/patientPortal'
 import type { UserProfile } from '../types/access'
+import {
+  cancelAppointment,
+  createAppointment,
+  fetchMyAppointments,
+} from '../services/appointmentsService'
+
+// La próxima cita confirmada desde hoy (o null si no hay ninguna)
+function findNextAppointment(appointments: PatientAppointment[]) {
+  const today = new Intl.DateTimeFormat('en-CA', { timeZone: 'America/Santiago' }).format(new Date())
+  return (
+    appointments.find((item) => item.status === 'Confirmada' && item.date >= today) ?? null
+  )
+}
 
 type PatientPortalViewProps = {
   patient: UserProfile
@@ -15,32 +28,48 @@ type PatientPortalViewProps = {
 
 export function PatientPortalView({ patient, onLogout }: PatientPortalViewProps) {
   const [activeTab, setActiveTab] = useState<PatientPortalTab>('inicio')
-  const [appointment, setAppointment] = useState(INITIAL_PATIENT_APPOINTMENT)
+  const [appointment, setAppointment] = useState<PatientAppointment | null>(null)
   const [isBookingFlowOpen, setIsBookingFlowOpen] = useState(false)
+  const [isRescheduling, setIsRescheduling] = useState(false)
+  const [loadError, setLoadError] = useState<string | null>(null)
+
+  useEffect(() => {
+    fetchMyAppointments()
+      .then((appointments) => setAppointment(findNextAppointment(appointments)))
+      .catch((error: Error) => setLoadError(error.message))
+  }, [])
 
   const patientName = patient.name.replace(/[._]+/g, ' ').trim()
   const firstName = patientName.split(/\s+/)[0] ?? 'Paciente'
 
-  function handleBookingSubmit(request: AppointmentRequest) {
-    const newAppointment: PatientAppointment = {
-      ...appointment,
-      id: `appointment-${Date.now()}`,
-      date: request.date,
-      time: request.time,
-      specialty: request.specialty,
-      center: request.center,
-      doctor: request.doctor,
-      reason: request.reason,
-      status: 'Confirmada',
-    }
-    setAppointment(newAppointment)
-    setIsBookingFlowOpen(false)
-    setActiveTab('reservas')
+  function openBookingFlow(reschedule: boolean) {
+    setIsRescheduling(reschedule)
+    setIsBookingFlowOpen(true)
   }
 
-  function handleCancelAppointment() {
-    if (window.confirm('¿Quieres cancelar esta hora médica?')) {
-      setAppointment((currentAppointment) => ({ ...currentAppointment, status: 'Cancelada' }))
+  async function handleBookingSubmit(request: AppointmentRequest) {
+    try {
+      const newAppointment = await createAppointment(request)
+      // Si estaba reagendando, se libera la hora anterior
+      if (isRescheduling && appointment?.status === 'Confirmada') {
+        await cancelAppointment(appointment.id)
+      }
+      setAppointment(newAppointment)
+      setIsBookingFlowOpen(false)
+      setActiveTab('reservas')
+    } catch (error) {
+      alert((error as Error).message)
+    }
+  }
+
+  async function handleCancelAppointment() {
+    if (!appointment) return
+    if (!window.confirm('¿Quieres cancelar esta hora médica?')) return
+
+    try {
+      setAppointment(await cancelAppointment(appointment.id))
+    } catch (error) {
+      alert((error as Error).message)
     }
   }
 
@@ -67,6 +96,12 @@ export function PatientPortalView({ patient, onLogout }: PatientPortalViewProps)
         />
 
       <main className="mx-auto w-full max-w-[1280px] flex-1 px-5 py-7 sm:px-8 sm:py-9 lg:px-10">
+        {loadError && (
+          <p className="mb-5 rounded-md border border-red-200 bg-red-50 p-4 text-sm text-red-700">
+            {loadError}
+          </p>
+        )}
+
         {activeTab === 'inicio' && (
           <>
             <div className="mb-7 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
@@ -79,7 +114,7 @@ export function PatientPortalView({ patient, onLogout }: PatientPortalViewProps)
               </div>
               <button
                 type="button"
-                onClick={() => setIsBookingFlowOpen(true)}
+                onClick={() => openBookingFlow(false)}
                 className="inline-flex min-h-12 shrink-0 items-center justify-center gap-2 self-start rounded-lg bg-[#147a72] px-6 text-sm font-semibold text-white shadow-sm transition hover:bg-[#0f625a] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#147a72] sm:self-auto"
               >
                 <CalendarDays size={17} aria-hidden="true" />
@@ -88,11 +123,15 @@ export function PatientPortalView({ patient, onLogout }: PatientPortalViewProps)
             </div>
 
             <div className="grid items-start gap-5 lg:grid-cols-[minmax(0,1.05fr)_minmax(0,0.95fr)]">
-              <PatientAppointmentCard
-                appointment={appointment}
-                onReschedule={() => setIsBookingFlowOpen(true)}
-                onCancel={handleCancelAppointment}
-              />
+              {appointment ? (
+                <PatientAppointmentCard
+                  appointment={appointment}
+                  onReschedule={() => openBookingFlow(true)}
+                  onCancel={handleCancelAppointment}
+                />
+              ) : (
+                <NoAppointmentCard />
+              )}
               <div className="space-y-5">
                 <div className="grid gap-4 sm:grid-cols-2">
                   <article className="flex items-center gap-3 rounded-2xl border border-[#e1e9e6] bg-white p-4 shadow-sm">
@@ -133,7 +172,7 @@ export function PatientPortalView({ patient, onLogout }: PatientPortalViewProps)
               </div>
               <button
                 type="button"
-                onClick={() => setIsBookingFlowOpen(true)}
+                onClick={() => openBookingFlow(false)}
                 className="inline-flex min-h-11 items-center justify-center gap-2 rounded-lg bg-[#147a72] px-4 text-sm font-semibold text-white hover:bg-[#0f625a]"
               >
                 <Plus size={17} aria-hidden="true" />
@@ -141,11 +180,15 @@ export function PatientPortalView({ patient, onLogout }: PatientPortalViewProps)
               </button>
             </div>
             <div className="max-w-2xl">
-              <PatientAppointmentCard
-                appointment={appointment}
-                onReschedule={() => setIsBookingFlowOpen(true)}
-                onCancel={handleCancelAppointment}
-              />
+              {appointment ? (
+                <PatientAppointmentCard
+                  appointment={appointment}
+                  onReschedule={() => openBookingFlow(true)}
+                  onCancel={handleCancelAppointment}
+                />
+              ) : (
+                <NoAppointmentCard />
+              )}
             </div>
           </section>
         )}
@@ -171,5 +214,14 @@ export function PatientPortalView({ patient, onLogout }: PatientPortalViewProps)
       </div>
 
     </div>
+  )
+}
+
+function NoAppointmentCard() {
+  return (
+    <article className="rounded-2xl border border-dashed border-[#dce9e5] bg-white p-6 text-center shadow-sm">
+      <p className="text-xs font-bold uppercase tracking-[0.12em] text-[#71807b]">Próxima atención</p>
+      <p className="mt-3 text-sm text-[#71807b]">No tienes horas reservadas.</p>
+    </article>
   )
 }
