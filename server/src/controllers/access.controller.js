@@ -1,4 +1,5 @@
 import bcrypt from 'bcryptjs'
+import jwt from 'jsonwebtoken'
 import { User, ROLES } from '../models/User.js'
 
 const INVALID_CREDENTIALS = { error: 'No se encontró una cuenta con esos datos.' }
@@ -21,5 +22,10 @@ export async function login(req, res) {
   const passwordOk = await bcrypt.compare(password, user.passwordHash)
   if (!passwordOk) return res.status(401).json(INVALID_CREDENTIALS)
 
-  res.json({ email: user.email, name: user.name, roleId: user.roleId })
+  const profile = { email: user.email, name: user.name, roleId: user.roleId }
+  const token = jwt.sign({ sub: user.id, ...profile }, process.env.JWT_SECRET, {
+    expiresIn: '8h',
+  })
+
+  res.json({ ...profile, token })
 }

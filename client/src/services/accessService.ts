@@ -2,7 +2,7 @@ import type {
   LoginCredentials,
   UserProfile,
 } from '../types/access'
-import { axiosInstance } from './axiosInstance'
+import { axiosInstance, setAuthToken } from './axiosInstance'
 
 type AccessApiPath =
   | 'login'
@@ -28,7 +28,7 @@ const readSuccess = <T,>(data: unknown): T => {
 export const authenticateAccount = async (
   credentials: LoginCredentials,
 ): Promise<UserProfile | null> => {
-  const response = await postApi<UserProfile>(
+  const response = await postApi<UserProfile & { token?: string }>(
     'login',
     {
       ...credentials,
@@ -38,5 +38,8 @@ export const authenticateAccount = async (
   )
 
   if (response.status === 401) return null
-  return readSuccess<UserProfile>(response.data)
+
+  const { token, ...profile } = readSuccess<UserProfile & { token?: string }>(response.data)
+  setAuthToken(token ?? null)
+  return profile
 }
