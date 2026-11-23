@@ -3,10 +3,16 @@ import { BrandPanel } from './components/access/BrandPanel'
 import { AdminView } from './views/AdminView'
 import { AccessView } from './views/AccessView'
 import { PatientPortalView } from './views/PatientPortalView'
+import { setAuthToken } from './services/axiosInstance'
 import type { UserProfile } from './types/access'
 
 function App() {
   const [authenticatedUser, setAuthenticatedUser] = useState<UserProfile | null>(null)
+
+  function handleLogout() {
+    setAuthToken(null)
+    setAuthenticatedUser(null)
+  }
 
   if (
     authenticatedUser?.roleId === 'administrador' ||
@@ -15,7 +21,7 @@ function App() {
     return (
       <AdminView
         administrator={authenticatedUser}
-        onLogout={() => setAuthenticatedUser(null)}
+        onLogout={handleLogout}
       />
     )
   }
@@ -24,7 +30,7 @@ function App() {
     return (
       <PatientPortalView
         patient={authenticatedUser}
-        onLogout={() => setAuthenticatedUser(null)}
+        onLogout={handleLogout}
       />
     )
   }
