@@ -5,6 +5,7 @@ import { connectDB } from '../config/db.js'
 import { User } from '../models/User.js'
 import { Resource } from '../models/Resource.js'
 import { Patient } from '../models/Patient.js'
+import { Appointment } from '../models/Appointment.js'
 import { INITIAL_CLINICAL_RESOURCES } from '../data/clinicalResources.js'
 import { INITIAL_PATIENTS } from '../data/patients.js'
 import { normalizeRut } from '../utils/rut.js'
@@ -50,6 +51,24 @@ try {
     )
   }
   console.log(`✔ ${INITIAL_PATIENTS.length} pacientes`)
+
+  // 4. Una cita de ejemplo para la cuenta paciente (solo si no tiene ninguna)
+  const demoPatient = await User.findOne({ email: 'paciente@example.cl' })
+  const existingAppointments = await Appointment.countDocuments({ patientUser: demoPatient._id })
+  if (existingAppointments === 0) {
+    const nextWeek = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000)
+    const date = new Intl.DateTimeFormat('en-CA', { timeZone: 'America/Santiago' }).format(nextWeek)
+    await Appointment.create({
+      patientUser: demoPatient._id,
+      date,
+      time: '10:30',
+      center: 'Centro Médico Providencia',
+      specialty: 'Medicina General',
+      doctor: 'Dra. Paula Lagos',
+      box: 'Box 04',
+    })
+    console.log(`✔ cita de ejemplo para paciente@example.cl (${date})`)
+  }
 
   console.log('Datos de prueba cargados')
 } catch (error) {
